@@ -13,10 +13,7 @@ export class TaskController {
   }
 
   createTask = asyncHandler(
-    async (
-      req: AuthRequest,
-      res: Response,
-    ): Promise<void> => {
+    async (req: AuthRequest, res: Response): Promise<void> => {
       const validatedData = req.body;
       if (!req.user) {
         throw new AppError("Unauthorized", 401);
@@ -32,10 +29,7 @@ export class TaskController {
   );
 
   getAllTasks = asyncHandler(
-    async (
-      req: AuthRequest,
-      res: Response,
-    ): Promise<void> => {
+    async (req: AuthRequest, res: Response): Promise<void> => {
       const page = Number(req.query.page) || 1;
       const limit = 10;
       const filterOptions: TaskFilterOptions = {
@@ -59,10 +53,7 @@ export class TaskController {
   );
 
   getTasks = asyncHandler(
-    async (
-      req: AuthRequest,
-      res: Response,
-    ): Promise<void> => {
+    async (req: AuthRequest, res: Response): Promise<void> => {
       if (!req.user) {
         throw new AppError("Unauthorized", 401);
       }
@@ -78,10 +69,7 @@ export class TaskController {
   );
 
   getTaskById = asyncHandler(
-    async (
-      req: AuthRequest,
-      res: Response,
-    ): Promise<void> => {
+    async (req: AuthRequest, res: Response): Promise<void> => {
       const id = req.params.id as string;
 
       const task = await this.taskService.getTaskById(id);
@@ -90,10 +78,7 @@ export class TaskController {
   );
 
   updateTask = asyncHandler(
-    async (
-      req: AuthRequest,
-      res: Response,
-    ): Promise<void> => {
+    async (req: AuthRequest, res: Response): Promise<void> => {
       if (!req.user) {
         throw new AppError("Unauthorized", 401);
       }
@@ -110,10 +95,7 @@ export class TaskController {
   );
 
   deleteTask = asyncHandler(
-    async (
-      req: AuthRequest,
-      res: Response,
-    ): Promise<void> => {
+    async (req: AuthRequest, res: Response): Promise<void> => {
       if (!req.user) {
         throw new AppError("Unauthorized", 401);
       }
@@ -126,4 +108,20 @@ export class TaskController {
         .json({ success: true, message: "Task deleted successfully" });
     },
   );
+
+  assignTask = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const taskId = req.params.id as string;
+    const { assigneeId } = req.body;
+
+    if (!assigneeId) {
+      throw new AppError("assigneeId is required", 400);
+    }
+    const updatedTask = await this.taskService.assignTask(taskId, assigneeId);
+
+    res.status(200).json({
+      status: "success",
+      message: "Task assigned successfully",
+      data: { task: updatedTask },
+    });
+  });
 }

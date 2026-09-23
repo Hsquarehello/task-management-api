@@ -56,7 +56,6 @@ export class TaskRepository {
   ): Promise<{ data: TaskWithRelations[]; total: number }> {
     const { status, priority, assigneeId, createdBy, search, page, limit } =
       filters;
-    const skip = (page - 1) * limit;
 
     const where: Prisma.TaskWhereInput = {
       ...(status && { status }),
@@ -74,7 +73,7 @@ export class TaskRepository {
     const [tasks, total] = await prisma.$transaction([
       prisma.task.findMany({
         where,
-        skip,
+        skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: "desc" },
         include: taskInclude,
@@ -100,5 +99,15 @@ export class TaskRepository {
     return prisma.task.delete({
       where: { id },
     });
+  }
+
+  async assignTask (taskId: string, assigneeId: string):Promise<TaskWithRelations> {
+    return prisma.task.update({
+      where: {id: taskId},
+      data: {
+        assigneeId,
+      },
+      include: taskInclude
+    })
   }
 }

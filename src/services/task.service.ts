@@ -1,4 +1,7 @@
-import { TaskRepository } from "../repositories/task.repository.js";
+import {
+  TaskRepository,
+  type TaskWithRelations,
+} from "../repositories/task.repository.js";
 import type {
   CreateTaskInput,
   TaskFilterOptions,
@@ -6,6 +9,7 @@ import type {
 } from "../validations/task.validation.js";
 import type { Task } from "../generated/prisma/client.js";
 import { AppError } from "../utils/appError.js";
+import { prisma } from "../libs/prisma.js";
 
 export class TaskService {
   private taskRepository: TaskRepository;
@@ -42,5 +46,26 @@ export class TaskService {
 
   async deleteTask(id: string): Promise<void> {
     await this.taskRepository.delete(id);
+  }
+
+  async assignTask(
+    taskId: string,
+    assigneeId: string,
+  ): Promise<TaskWithRelations> {
+    const task = await this.taskRepository.findById(taskId);
+
+    if (!task) {
+      throw new AppError("Task not found", 404);
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: assigneeId },
+    });
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    return await this.taskRepository.assignTask(taskId, assigneeId);
   }
 }

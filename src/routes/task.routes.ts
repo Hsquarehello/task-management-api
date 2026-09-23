@@ -39,4 +39,12 @@ router.delete(
   taskController.deleteTask,
 );
 
+router.put(
+  "/:id/assign",
+  validate(TaskIdParamSchema),
+  authenticate,
+  authorizeRoles(Role.ADMIN),
+  taskController.assignTask,
+);
+
 export default router;
